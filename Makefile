@@ -67,6 +67,8 @@ FUNC_LIB = $(if $(filter static,$(1)),$(LDFLAG_STATIC) $(2) $(LDFLAG_DYNAMIC),$(
 # USE_CRYPTO: LIB_CRYPTO
 #变量在声明时需要给与初值，而在使用时需要在变量名前加上$符号，但最好用小括号或是大括号把变量给包括起来。
 #如果要使用真实的$字符，那么需用$$来表示。
+
+#函数调用和变量的使用想像，也是以$来标志的
 ifneq ($(USE_GNUTLS),no)
 	LIB_CRYPTO = $(call FUNC_LIB,$(USE_GNUTLS),$(LDFLAG_GNUTLS))
 	DEF_CRYPTO = -DUSE_GNUTLS
@@ -90,6 +92,7 @@ ifneq ($(USE_SYSFS),no)
 endif
 
 # USE_IDN: DEF_IDN, LIB_IDN
+#ifneq比较两个参数的值是否相同，如果不同，则为真
 ifneq ($(USE_IDN),no)
 	DEF_IDN = -DUSE_IDN
 	LIB_IDN = $(call FUNC_LIB,$(USE_IDN),$(LDFLAG_IDN))
@@ -120,7 +123,7 @@ TARGETS=$(IPV4_TARGETS) $(IPV6_TARGETS)
 
 CFLAGS=$(CCOPTOPT) $(CCOPT) $(GLIBCFIX) $(DEFINES)
 LDLIBS=$(LDLIB) $(ADDLIB)
-
+#make中使用：=操作符的方法  用变量来定义变量
 UNAME_N:=$(shell uname -n)
 LASTTAG:=$(shell git describe HEAD | sed -e 's/-.*//')
 TODAY=$(shell date +%Y/%m/%d)
@@ -135,6 +138,8 @@ all: $(TARGETS)
 #  %的意思是匹配零或若干字符，例如%.h表示所有以.h结尾的文件
 #  %.s: %.c是指所有的.s文件都依赖于.c文件
 %.s: %.c
+# $(patsubst <pattern>,<replacement>,<text>)模式字符串替换函数————patsubst
+#查找<text>中的单词(单词以空格、tab、回车或换行分隔)是否符合模式<pattern>,如果匹配的话，则以<replacement>替换
 	$(COMPILE.c) $< $(DEF_$(patsubst %.o,%,$@)) -S -o $@
 %.o: %.c
 	$(COMPILE.c) $< $(DEF_$(patsubst %.o,%,$@)) -o $@
@@ -161,6 +166,9 @@ DEF_arping = $(DEF_SYSFS) $(DEF_CAP) $(DEF_IDN) $(DEF_WITHOUT_IFADDRS)
 LIB_arping = $(LIB_SYSFS) $(LIB_CAP) $(LIB_IDN)
 
 ifneq ($(ARPING_DEFAULT_DEVICE),)
+#使用+=操作符，DEF_arping被追加进去了
+#如果便来那个之前没有定义过，那么+=会自动变成=，如果前面有变量定义，那么+=会承于前次操作的赋值符。
+#如果前一次是：=  那么+=会以：=作为其赋值符
 DEF_arping += -DDEFAULT_DEVICE=\"$(ARPING_DEFAULT_DEVICE)\"
 endif
 
@@ -257,6 +265,7 @@ clean:
 	@rm -f *.o $(TARGETS)
 	@$(MAKE) -C Modules clean
 	@$(MAKE) -C doc clean
+#反斜杠（\）是换行符的意思。这样比较便于makefile的易读
 	@set -e; \
 		if [ -f ninfod/Makefile ]; then \
 			$(MAKE) -C ninfod clean; \
