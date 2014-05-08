@@ -65,6 +65,8 @@ FUNC_LIB = $(if $(filter static,$(1)),$(LDFLAG_STATIC) $(2) $(LDFLAG_DYNAMIC),$(
 
 # USE_GNUTLS: DEF_GNUTLS, LIB_GNUTLS
 # USE_CRYPTO: LIB_CRYPTO
+#变量在声明时需要给与初值，而在使用时需要在变量名前加上$符号，但最好用小括号或是大括号把变量给包括起来。
+#如果要使用真实的$字符，那么需用$$来表示。
 ifneq ($(USE_GNUTLS),no)
 	LIB_CRYPTO = $(call FUNC_LIB,$(USE_GNUTLS),$(LDFLAG_GNUTLS))
 	DEF_CRYPTO = -DUSE_GNUTLS
@@ -239,14 +241,19 @@ modules: check-kernel
 	$(MAKE) KERNEL_INCLUDE=$(KERNEL_INCLUDE) -C Modules
 
 # -------------------------------------
+#定义$(MAKE)宏变量的意思是，也许我们的make需要一些参数，所以定义成一个变量比较利于维护。
+#这两行代码的意思是先进入doc目录，然后执行make命令
+#下面两行等价于man:	cd doc && $(MAKE)
 man:
 	$(MAKE) -C doc man
 
 html:
+#当使用-C参数来指定make下层Makefile时，-w会被自动打开
+#-w活--print-directory会在make的过程中输出一些信息，让你看到目前的工作目录
 	$(MAKE) -C doc html
 
 clean:
-#
+#为了忽略命令的出错，我们可以在Makefile的命令行前加一个减号“-”（在TAB键之后），标记为不管命令出不出错都认为是成功的
 	@rm -f *.o $(TARGETS)
 	@$(MAKE) -C Modules clean
 	@$(MAKE) -C doc clean
