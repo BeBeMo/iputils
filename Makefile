@@ -130,7 +130,8 @@ TAG:=$(shell date --date=$(TODAY) +s%Y%m%d)
 .PHONY: all ninfod clean distclean man html check-kernel modules snapshot
 
 all: $(TARGETS)
-
+#  %的意思是匹配零或若干字符，例如%.h表示所有以.h结尾的文件
+#  %.s: %.c是指所有的.s文件都依赖于.c文件
 %.s: %.c
 	$(COMPILE.c) $< $(DEF_$(patsubst %.o,%,$@)) -S -o $@
 %.o: %.c
@@ -140,7 +141,7 @@ $(TARGETS): %: %.o
 #
 #COMPILE.c=$(CC) $(CFLAGS) $(CPPFLAGS) -c
 # $< 依赖目标中的第一个目标名字
-# $@ 表示目标
+# $@ 表示目标的集合，就像一个数组，$@依次取出目标，并执行命令
 # $^ 所有的依赖目标的集合
 # 在$(patsubst %.o,%,$@ )中，patsubst把目标中的变量符合后缀是.o的全部删除，DEF_ping
 #LINK.o把.o文件链接在一起的命令行，缺省值是$(CC) $(LDFLAGS) $(TARGET_ARCH)
@@ -202,12 +203,17 @@ DEF_tftpd =
 DEF_tftpsubs =
 LIB_tftpd =
 
+#tftpd是我们的目标，tftpsubs.o是目标所依赖的源文件
 tftpd: tftpsubs.o
 tftpd.o tftpsubs.o: tftp.h
 
 # -------------------------------------
 # ninfod
 ninfod:
+#通常make会把其要执行的命令行在命令执行前输出到屏幕上。当我们用@字符在命令行前，那么，这个命令将不被make显示出来
+#最具代表性的例子是，我们用这个功能来向屏幕显示一些信息，如：@echo   正在编译xxx模块......
+#当make执行时，会输出“正在编译XXX模块......”字串，但不会输出命令
+#如果没有@,那么make将输出：“echo   正在编译XXX模块......    正在编译XXX模块......”
 	@set -e; \
 		if [ ! -f ninfod/Makefile ]; then \
 			cd ninfod; \
@@ -220,6 +226,8 @@ ninfod:
 # modules / check-kernel are only for ancient kernels; obsolete
 check-kernel:
 ifeq ($(KERNEL_INCLUDE),)
+#若要让上一条命令的结果应用在下一条命令时，你应该使用分号分开这两条命令。
+#比如你的第一条命令是cd命令，你希望第二条命令得在cd之后的基础上运行，那么你就不能把这两条命令写在两行上，而应该把这两条命令些杂一行上，用分号分隔开。
 	@echo "Please, set correct KERNEL_INCLUDE"; false
 else
 	@set -e; \
@@ -238,6 +246,7 @@ html:
 	$(MAKE) -C doc html
 
 clean:
+#
 	@rm -f *.o $(TARGETS)
 	@$(MAKE) -C Modules clean
 	@$(MAKE) -C doc clean
