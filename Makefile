@@ -124,6 +124,11 @@ TARGETS=$(IPV4_TARGETS) $(IPV6_TARGETS)
 CFLAGS=$(CCOPTOPT) $(CCOPT) $(GLIBCFIX) $(DEFINES)
 LDLIBS=$(LDLIB) $(ADDLIB)
 #make中使用：=操作符的方法  用变量来定义变量
+#shell函数把执行操作系统命令后的输出作为函数返回
+#注意，这个函数会新生成一个shell程序来执行命令，
+#所以你要注意其运行性能，如果你的Makefile中有一些比较复杂的规则，并大量使用了这个函数，
+#那么对于你的系统性能是有害的。
+#特别是Makefile的隐晦规则可能会让你的shell函数执行的次数比你想像的多。
 UNAME_N:=$(shell uname -n)
 LASTTAG:=$(shell git describe HEAD | sed -e 's/-.*//')
 TODAY=$(shell date +%Y/%m/%d)
